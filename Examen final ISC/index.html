@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulario con Dexie.js</title>
+  <script src="https://unpkg.com/dexie@3.2.3/dist/dexie.js"></script>
+</head>
+<body>
+  <h1>Formulario de Registro</h1>
+
+  <form id="formulario">
+    <label>Nombres: <input type="text" id="nombres" required></label><br><br>
+    <label>Apellidos: <input type="text" id="apellidos" required></label><br><br>
+    <label>Año de nacimiento: <input type="number" id="anio" required></label><br><br>
+    <label>Mes de nacimiento (1-12): <input type="number" id="mes" min="1" max="12" required></label><br><br>
+    <button type="submit">Guardar</button>
+  </form>
+
+  <p id="resultado"></p>
+
+  <script>
+    // Crear base de datos con Dexie.js
+    const db = new Dexie("MiBaseDeDatos");
+    db.version(1).stores({
+      personas: "++id,nombres,apellidos,anio,mes,bisiesto,mesPar"
+    });
+
+    // Función para saber si un año es bisiesto
+    function esBisiesto(anio) {
+      return (anio % 4 === 0 && anio % 100 !== 0) || (anio % 400 === 0);
+    }
+
+    // Función para saber si un número es par
+    function esPar(numero) {
+      return numero % 2 === 0;
+    }
+
+    // Evento del formulario
+    document.getElementById("formulario").addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      const nombres = document.getElementById("nombres").value;
+      const apellidos = document.getElementById("apellidos").value;
+      const anio = parseInt(document.getElementById("anio").value);
+      const mes = parseInt(document.getElementById("mes").value);
+
+      const bisiesto = esBisiesto(anio);
+      const mesPar = esPar(mes);
+
+      // Guardar en IndexedDB
+      await db.personas.add({
+        nombres,
+        apellidos,
+        anio,
+        mes,
+        bisiesto,
+        mesPar
+      });
+
+      // Mostrar resultado
+      document.getElementById("resultado").textContent =
+        `Datos guardados. Año ${anio} ${bisiesto ? 'es' : 'no es'} bisiesto, mes ${mes} es ${mesPar ? 'par' : 'impar'}.`;
+
+      document.getElementById("formulario").reset();
+    });
+  </script>
+</body>
+</html>
+
+
+
+
